@@ -1,65 +1,33 @@
 ## Purpose
 
-This project is designed to build a Tanzu Application Platform 1.2 multicluster instances on AWS EKS that corresponds to the [Tanzu Application Platform Reference Design](https://github.com/vmware-tanzu-labs/tanzu-validated-solutions/blob/main/src/reference-designs/tap-architecture-planning.md) . 
+This project is designed to build a Tanzu Application Platform 1.2 single-cluster instance on VCD+CSE 4.x TKG Cluster that corresponds to the [Full TAP profile in the Official VMware Docs](https://docs.vmware.com/en/VMware-Tanzu-Application-Platform/1.2/tap/GUID-install-intro.html). 
 
-This is 2 steps automation with minimum inputs into config files. 
+This is a 1-step automation with minimum inputs into config files. This scripts assume that Tanzu Cluster essentials are already present in the TKG cluster.
 
-* **Step 1** to create all aws resources for tap like VPC , 4 eks clusters and associated security and Iam group , node etc
-* **Step 2** to install tap profiles into eks clusters.
+* **Step 1** To install TAP full profile into a Tanzu K8S cluster.
 
 Specifically, this automation will build:
-- a aws VPC (internet facing)
-- 4 EKS clusters named as tap-view , tap-run , tap-build,tap-iterate and associated security IAM roles and groups and nodes into aws. 
-- Install Tanzu Application Platform profiles such as view,run,build,iterate on Respective eks clusters. 
+- Install Tanzu Application Platform full profile on the VCD+CSE 4.x TKG cluster. 
 - Install Tanzu Application Platform sample demo app. 
 
-## AWS resources matrix 
+## [Prerequisites](https://docs.vmware.com/en/VMware-Tanzu-Application-Platform/1.2/tap/GUID-prerequisites.html)
 
- **Resource Name** | **Size/Number**  
- -----|-----
- VPC | 1
- Subnets | 2 private , 2 public
- VPC cidr | 10.0.0.0/16
- EKS clusters | 4
- Nodes per eks cluster | Nodes : 3, Node Size : t2.xlarge , Storage : 100GB disk size
-## Prerequisite 
-
-Following cli must be setup into jumbbox or execution machine/terminal. 
-   * terraform cli 
-   * aws cli 
-
+* Install kubectl cli.
+* An account with write permissions in a Docker Registry (DockerHub, Harbor, AWS ECR, Azure ACR).
+* Have a Tanzu Network account and [Accept the Tanzu EULA](https://docs.vmware.com/en/VMware-Tanzu-Application-Platform/1.2/tap/GUID-install-tanzu-cli.html#accept-eulas).
+* Network access to the Tanzu Public Registry: https://registry.tanzu.vmware.com
+* A Git repository for tap-gui software catalogs (GitHub, Gitlab, Azure DevOps).
 
 ## Prepare the Environment
 
-First, be sure that your AWS access credentials are available within your environment.
-
-### Set aws env variables.
- 
-```bash
-export AWS_ACCESS_KEY_ID=<your AWS access key>
-export AWS_SECRET_ACCESS_KEY=<your AWS secret access key>
-export AWS_REGION=us-east-1  # ensure the region is set correctly. this must agree with what you set in the tf files below.
-```
-
-### Prepare Terraform
-
-* Initialize Terraform by executing `terraform init`
-* Set required variables in `terraform.tfvars`
-  * `availability_zones_count` Should be set to number of subnets(private/public) you want to create within vpc.
-  * `vpc_cidr` Should be set cidr for vpc. 
-  * `aws_region` Should be set to your AWS region
-  * `subnet_cidr_bits` Should be set cidr bits for vpc.
-
-* Execute Terraform apply by exeuting `terraform apply`
-
 ### Add TAP configuration mandatory details 
 
-Add following details into `/tap-scripts/var.conf` file to fullfill tap prerequisite. Examples and default values given in below sample. All fields are mandatory and can't be leave blank and must be filled before executing the `tap-index.sh` . Please refer below sample config file. 
-```
+Add the following details into `/tap-scripts/var.conf` file to fullfill TAP prerequisite. Examples and default values are given in sample below. All fields are mandatory. They can't be leave blank and must be filled before executing the `tap-index.sh` script. Refer to the sample config file below. 
 
+```
 TAP_DEV_NAMESPACE="default"
 os=<terminal os as m or l.  m for Mac , l for linux/ubuntu>
-INSTALL_REGISTRY_HOSTNAME=registry.tanzu.vmware.com
+INSTALL_REGISTRY_HOSTNAME="registry.tanzu.vmware.com"
 INSTALL_BUNDLE=registry.tanzu.vmware.com/tanzu-cluster-essentials/cluster-essentials-bundle@sha256:e00f33b92d418f49b1af79f42cb13d6765f1c8c731f4528dfff8343af042dc3e
 DOCKERHUB_REGISTRY_URL=index.docker.io
 TAP_VERSION=1.2.0
@@ -67,137 +35,86 @@ TAP_NAMESPACE="tap-install"
 tanzu_net_reg_user=<Provide tanzu net user>
 tanzu_net_reg_password=<Provide tanzu net password>
 tanzu_net_api_token=<Provide tanzu net token>
-aws_region=<aws region where tap eks clusters created>
 registry_url=<Provide user registry url>
 registry_user=<Provide user registry userid>
 registry_password=<Provide user registry password>
-tap_run_cnrs_domain=<run cluster sub domain example like : run.ab-tap.customer0.io >
-alv_domain=<app live view  sub domain example like :alv.ab-tap.customer0.io >
-TAP_RUN_CLUSTER_NAME="tap-run"
-TAP_GITHUB_TOKEN=< git hub token>
-tap_view_app_domain=<view  cluster sub domain example like :view.ab-tap.customer0.io>
-tap_git_catalog_url=<git catelog url example like : https://github.com/sendjainabhi/tap/blob/main/catalog-info.yaml>
+
+#TAP FULL
+tap_cnrs_domain=<TAP cluster sub domain example like : full.ab-tap.customer0.io >
+tap_git_catalog_url=<git catalog url example like : https://github.com/sendjainabhi/tap/blob/main/catalog-info.yaml>
+TAP_CLUSTER_NAME=tap-full
+TAP_CLUSTER_SERVER=<TAP cluster server URL address example like : https://A.B.C.D:6443 >
+TAP_CLUSTER_USER=tap-full-admin
+TAP_CLUSTER_CERT_FILE=<K8S user certificate file location>
+TAP_CLUSTER_KEY_FILE=<K8S user certificate key location>
+TAP_CLUSTER_CACERT_FILE=<K8S cluster CA certificate file location>
+
+#tap-gui
+TAP_GUI_CERT=<HTTPS FullChain cert absolute path  for tap-gui>
+TAP_GUI_KEY=<HTTPS Key absolute path for tap-gui>
 
 #tap demo app properties
 TAP_APP_NAME="tap-demo"
 TAP_APP_GIT_URL="https://github.com/sample-accelerators/spring-petclinic"
-
 ```
+
+In the following lines you will find notes on how to obtain the values to fill some of the  required variables:
+
+* tanzu_net_reg_user: Tanzu Network username. It is usually an email.
+* tanzu_net_reg_password: Tanzu Network password. Special characters shall be scaped with the '\' character.
+* tanzu_net_api_token: This token can be obtained in Tanzu Network by navigating to the User menu, Edit Profile, UAA API TOKEN and then clicking the button "REQUEST NEW REFRESH TOKEN".
+* registry_url: If using Docker Hub, the registry URL shall be `index.docker.io`. This registry will be used to store all the builder images and the generated workload images.
+* registry_user: Username of the container registry.
+* registry_password: Password of the container registry. This password may be an access token issued by the registry.
+* tap_git_catalog_url: GIT Url where the catalog yaml file for tap-gui is located.
+
 ## Install TAP
-### Build EKS clusters 
-Execute following steps to build aws resources for TAP. 
 
-*  Execute `terraform plan ` from /terraform directory and review all aws resources.
+### Install TAP full profile in single cluster
 
-* Execute `terraform apply` to build aws resources.
+Execute the following steps to install TAP in a single cluster 
 
-### Install TAP multi clusters (Run/View/Build/Iterate)
-
-Execute following steps to Install TAP multi clusters (Run/View/Build/Iterate)
 ```
-
-#Step 1 - Execute Permission to tap-index.sh file
+#Step 1 - Add execute permission to tap-index.sh file
 chmod +x /tap-scripts/tap-index.sh
 
-#Step 2 - Execute tap-index file 
+#Step 2 - Run tap-index file 
 ./tap-scripts/tap-index.sh
-
-
-```
-**Note** - 
-
- Pick an external ip from service output from eks view and run clusters and configure DNS wildcard records in your dns server for view and run cluster
- * **Example view cluster** - *.view.customer0.io ==> <ingress external ip/cname>
- * **Example run cluster** - *.run.customer0.io ==> <ingress external ip/cname>
-  * **Example iterate cluster** - *.iter.customer0.io ==> <ingress external ip/cname>
-### TAP single profile(Run/View/Build/Iterate) installation 
-
-You can install only any single TAP profile(Run/View/Build/Iterate) as well 
-
-* **To install View profile only , execute following step** 
-
 ```
 
-#Step 1 - Execute Permission to tap-view.sh file
-chmod +x /tap-scripts/tap-view.sh
+### Create DNS records
 
-#Step 2 - Execute tap-view.sh file 
-./tap-scripts/tap-view.sh
+Pick the external ip from service output from the K8S cluster and configure a DNS wildcard record in your dns server:
 
-
+To obtain the External IP address, run the following command and pick the EXTERNAL-IP:
+```
+kubectl get svc envoy -n tanzu-system-ingress
 ```
 
-* **To install Run profile only , execute following step** 
+* **Example full cluster** - *.full.customer0.io ==> <ingress external ip/cname>
 
-```
-
-#Step 1 - Execute Permission to tap-run.sh file
-chmod +x /tap-scripts/tap-run.sh
-
-#Step 2 - Execute tap-run.sh file 
-./tap-scripts/tap-run.sh
-
-
-```
-
-* **To install build profile only , execute following step** 
-
-```
-
-#Step 1 - Execute Permission to tap-build.sh file
-chmod +x /tap-scripts/tap-build.sh
-
-#Step 2 - Execute tap-build.sh file 
-./tap-scripts/tap-build.sh
-
-
-```
-
-
-* **To install iterate profile only , execute following step** 
-
-```
-
-#Step 1 - Execute Permission to tap-iterate.sh file
-chmod +x /tap-scripts/tap-iterate.sh
-
-#Step 2 - Execute tap-iterate.sh file 
-./tap-scripts/tap-iterate.sh
-
-
-```
 
 ### TAP scripts for specific tasks
 
-If you got stuck in any specific stage and need to resume installation , you can use following scripts.Please login to respective EKS cluster before executing these scripts.
+If you got stuck in any specific stage and need to resume installation , you can use following scripts.
 
-* **Install tanzu cli** - execute `./tap-scripts/tanzu-cli-setup.sh`
+* **Install tanzu cli** - Run `./tap-scripts/tanzu-cli-setup.sh`
 
-* **Install tanzu essentials** - execute `./tap-scripts/tanzu-essential-setup.sh`  
+* **Install tanzu essentials** - Run `./tap-scripts/tanzu-essential-setup.sh` . This step is commented in the tap-full.sh script, as this automation project is for TKGm K8S clusters delivered by VCD+CSE. Tanzu Essentials shall be already installed.
 
-* **Setup TAP repository** - execute `./tap-scripts/tanzu-repo.sh`  
+* **Setup TAP repository** - Run `./tap-scripts/tanzu-repo.sh`  
 
-* **Install TAP run profile packages** - execute `./tap-scripts/tanzu-run-profile.sh`  
-
-* **Install TAP build profile packages** - execute `./tap-scripts/tanzu-build-profile.sh`
-
-* **Install TAP view profile packages** - execute `./tap-scripts/tanzu-view-profile.sh`
+* **Install TAP full profile packages** - Run `./tap-scripts/tanzu-full-profile.sh`  
 
 ## Clean up
 
-### Delete TAP instances from all eks clusters 
+### Delete TAP instances from the K8S cluster
 
-Please follow below steps 
+Follow below steps 
 ```
 
-1. execute chmod +x /tap-scripts/tap-delete/tap-delete.sh
-2. execute ./tap-scripts/tap-delete/tap-delete.sh
- 
-# Delete single tap cluster instance 
-1. Login to eks clusters(view/run/build/iterate) using kubeconfig where you want to delete tap.
-2. execute chmod +x /tap-scripts/tap-delete/tap-delete-single-cluster.sh
-3. execute ./tap-scripts/tap-delete/tap-delete-single-cluster.sh
+1. Login to the K8S cluster where the full-profile TAP is installed, using `kubectl config use-context` command.
+2. Run chmod +x /tap-scripts/tap-delete/tap-delete-single-cluster.sh
+3. Run ./tap-scripts/tap-delete/tap-delete-single-cluster.sh
 
 ```
-### Delete EKS clusters instances from eks cluster 
-Run `terraform destroy` to destroy to delete all aws resources created by terraform. In some instances it is possible that `terraform destroy` will not be able to clean up after a failed Tanzu install. Especially in situations where the management cluster only comes partially up for whatever reason. In this circumstance you can recursively delete the VPCs that failed to get destroyed and use the tags "CreatedBy: Arcas" to find anything that was generated by this terraform.

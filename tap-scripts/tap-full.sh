@@ -20,9 +20,9 @@ kubectl config use-context ${TAP_CLUSTER_USER}@${TAP_CLUSTER_NAME}
 
 #echo "Step 1 => installing tanzu cli and tanzu essential in VIEW cluster !!!"
 #./tanzu-essential-setup.sh
-echo "Step 2 => installing TAP Repo in VIEW cluster !!! "
+echo "Step 2 => installing TAP Repo in FULL cluster !!! "
 ./tap-repo.sh
-echo "Step 3 => installing TAP VIEW  Profile !!! "
-./tap-view-profile.sh
-echo "Step 4 => installing TAP developer namespace in VIEW cluster !!! "
+echo "Step 3 => installing TAP FULL  Profile !!! "
+./tap-full-profile.sh
+echo "Step 4 => installing TAP developer namespace in FULL cluster !!! "
 ./tap-dev-namespace.sh

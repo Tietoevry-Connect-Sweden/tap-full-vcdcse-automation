@@ -135,12 +135,6 @@ CLUSTER_TOKEN=$(kubectl -n tap-gui get secret $(kubectl -n tap-gui get sa tap-gu
 echo CLUSTER_URL: $CLUSTER_URL
 echo CLUSTER_TOKEN: $CLUSTER_TOKEN
 
-
-# set the following variables
-export TAP_REGISTRY_SERVER=$registry_url
-export TAP_REGISTRY_USER=$registry_user
-export TAP_REGISTRY_PASSWORD=$registry_password
-
 cat <<EOF | tee tap-values-full.yaml
 profile: full
 ceip_policy_disclosed: true
@@ -168,8 +162,8 @@ tap_gui:
   ingressEnabled: "true"
   ingressDomain: "${tap_cnrs_domain}"
   tls:
-    namespace: cert-manager
-    secretName: tap-gui
+    namespace: tap-gui
+    secretName: tap-gui-cert
   app_config:
     app:
       baseUrl: "https://tap-gui.${tap_cnrs_domain}"
@@ -196,7 +190,7 @@ tap_gui:
         - type: "config"
           clusters:
             - url: ${CLUSTER_URL}
-              name: ${TAP_RUN_CLUSTER_NAME}
+              name: ${TAP_CLUSTER_NAME}
               authProvider: "serviceAccount"
               skipTLSVerify: true
               skipMetricsLookup: true
@@ -262,43 +256,44 @@ tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION --values-file 
 tanzu package installed get tap -n "${TAP_NAMESPACE}"
 
 # Create Issuer and Certificate for tap-gui
-cat <<EOF | tee tap-full-cluster-issuer.yaml
-apiVersion: cert-manager.io/v1
-kind: ClusterIssuer
-metadata:
-  name: letsencrypt-http01-issuer
-spec:
-  acme:
-    server: https://acme-v02.api.letsencrypt.org/directory
-    email: ipablo@vmware.com
-    privateKeySecretRef:
-      name: letsencrypt-http01-issuer
-    solvers:
-      - http01:
-          ingress:
-            class: contour
-EOF
+#cat <<EOF | tee tap-full-cluster-issuer.yaml
+#apiVersion: cert-manager.io/v1
+#kind: ClusterIssuer
+#metadata:
+#  name: letsencrypt-http01-issuer
+#spec:
+#  acme:
+#    server: https://acme-v02.api.letsencrypt.org/directory
+#    email: ipablo@vmware.com
+#    privateKeySecretRef:
+#      name: letsencrypt-http01-issuer
+#    solvers:
+#      - http01:
+#          ingress:
+#            class: contour
+#EOF
 
-cat <<EOF | tee tap-full-certificate.yaml
+#cat <<EOF | tee tap-full-certificate.yaml
 
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  namespace: cert-manager
-  name: tap-gui
-spec:
-  commonName: tap-gui.${tap_cnrs_domain}
-  dnsNames:
-  - tap-gui.${tap_cnrs_domain}
-  issuerRef:
-    name: letsencrypt-http01-issuer
-    kind: ClusterIssuer
-  secretName: tap-gui
+#apiVersion: cert-manager.io/v1
+#kind: Certificate
+#metadata:
+#  namespace: cert-manager
+#  name: tap-gui
+#spec:
+#  commonName: tap-gui.${tap_cnrs_domain}
+#  dnsNames:
+#  - tap-gui.${tap_cnrs_domain}
+#  issuerRef:
+#    name: letsencrypt-http01-issuer
+#    kind: ClusterIssuer
+#  secretName: tap-gui
 
-EOF
+#EOF
 
-kubectl create -f tap-full-cluster-issuer.yaml
-kubectl create -f tap-full-certificate.yaml
+#kubectl create -f tap-full-cluster-issuer.yaml
+#kubectl create -f tap-full-certificate.yaml
+kubectl create secret tls tap-gui-cert --cert $TAP_GUI_CERT --key $TAP_GUI_KEY -n tap-gui
 
 # ensure all build cluster packages are installed succesfully
 tanzu package installed list -A
