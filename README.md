@@ -22,7 +22,7 @@ Specifically, this automation will build:
 
 ### Add TAP configuration mandatory details 
 
-Add the following details into `/tap-scripts/var.conf` file to fullfill TAP prerequisite. Examples and default values are given in sample below. All fields are mandatory. They can't be leave blank and must be filled before executing the `tap-index.sh` script. Refer to the sample config file below. 
+Add the following details into `/tap-scripts/var.conf` file to fullfill TAP prerequisites. Examples and default values are given in sample below. All fields are mandatory. They can't be leave blank and must be filled before executing the `tap-index.sh` script. Refer to the sample config file below. 
 
 ```
 TAP_DEV_NAMESPACE="default"
@@ -104,7 +104,11 @@ If you got stuck in any specific stage and need to resume installation , you can
 
 * **Setup TAP repository** - Run `./tap-scripts/tanzu-repo.sh`  
 
-* **Install TAP full profile packages** - Run `./tap-scripts/tanzu-full-profile.sh`  
+* **Install TAP full profile packages** - Run `./tap-scripts/tanzu-full-profile.sh` 
+
+When creating TKGm clusters with VCD+CSE, you can obtain the kubeconfig files as ' `kubeconfig-<clusterName>.txt` files. To extract the user key and certificate and the CA certificate, you can make use of the `helpers/extract-kubeconfig-certs.sh` script.
+
+* **Extract Keys and Certificate files from Kubeconfig** - Copy `kubeconfig-<clusterName>.txt` files in the helpers folder and run `./tap-scripts/helpers/extract-kubeconfig-certs.sh <Cluster Name Prefix>`. e.g. if the kubeconfigfiles are a named kubeconfig-tap-full.txt, the <Cluster Name Prefix> parameter should be `-tap-`.
 
 ## Clean up
 
@@ -113,7 +117,7 @@ If you got stuck in any specific stage and need to resume installation , you can
 Follow below steps 
 ```
 
-1. Login to the K8S cluster where the full-profile TAP is installed, using `kubectl config use-context` command.
+1. Log in to the K8S cluster where the full-profile TAP is installed, using `kubectl config use-context` command.
 2. Run chmod +x /tap-scripts/tap-delete/tap-delete-single-cluster.sh
 3. Run ./tap-scripts/tap-delete/tap-delete-single-cluster.sh
 
