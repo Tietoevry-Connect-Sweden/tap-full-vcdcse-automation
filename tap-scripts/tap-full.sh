@@ -5,7 +5,7 @@ source var.conf
 
 chmod +x tanzu-essential-setup.sh
 chmod +x tap-repo.sh
-chmod +x tap-view-profile.sh
+chmod +x tap-full-profile.sh
 chmod +x tap-dev-namespace.sh
 
 chmod +x var-input-validatation.sh
