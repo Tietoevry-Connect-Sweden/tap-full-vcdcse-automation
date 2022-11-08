@@ -50,10 +50,13 @@ metadata:
   name: k8s-reader
 rules:
 - apiGroups: ['']
-  resources: ['pods', 'services', 'configmaps']
+  resources: ['pods', 'pods/log', 'services', 'configmaps', 'limitranges']
+  verbs: ['get', 'watch', 'list']
+- apiGroups: ['metrics.k8s.io']
+  resources: ['pods']
   verbs: ['get', 'watch', 'list']
 - apiGroups: ['apps']
-  resources: ['deployments', 'replicasets']
+  resources: ['deployments', 'replicasets', 'statefulsets', 'daemonsets']
   verbs: ['get', 'watch', 'list']
 - apiGroups: ['autoscaling']
   resources: ['horizontalpodautoscalers']
@@ -95,6 +98,7 @@ rules:
 - apiGroups: ['source.apps.tanzu.vmware.com']
   resources:
   - imagerepositories
+  - mavenartifacts
   verbs: ['get', 'watch', 'list']
 - apiGroups: ['conventions.apps.tanzu.vmware.com']
   resources:
@@ -120,6 +124,9 @@ rules:
   resources:
   - apps
   verbs: ['get', 'watch', 'list']
+- apiGroups: [ 'batch' ]
+  resources: [ 'jobs', 'cronjobs' ]
+  verbs: [ 'get', 'watch', 'list' ]
 
 EOF
 
@@ -138,6 +145,9 @@ echo CLUSTER_TOKEN: $CLUSTER_TOKEN
 cat <<EOF | tee tap-values-full.yaml
 profile: full
 ceip_policy_disclosed: true
+
+excluded_packages:
+  - policy.apps.tanzu.vmware.com
 
 shared:
   ingress_domain: "${tap_cnrs_domain}"
@@ -248,7 +258,8 @@ cnrs:
 appliveview_connector:
   backend:
     sslDisabled: "true"
-    host: appliveview.$alv_domain
+    ingressEnabled: "true"
+    host: appliveview.${tap_cnrs_domain}
 
 EOF
 
