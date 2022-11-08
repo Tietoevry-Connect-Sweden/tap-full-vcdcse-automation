@@ -248,7 +248,7 @@ cnrs:
 appliveview_connector:
   backend:
     sslDisabled: "true"
-    host: appliveview.$alv_domain
+    host: appliveview.${tap_cnrs_domain}
 
 EOF
 
