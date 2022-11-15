@@ -6,7 +6,7 @@ source var.conf
 echo "Build source code in build cluster !!!"
 
 echo "Login to build cluster !!!"
-aws eks --region $aws_region update-kubeconfig --name tap-build
+#aws eks --region $aws_region update-kubeconfig --name tap-build
 
 echo "delete existing app"
 tanzu apps workload delete --all
@@ -38,10 +38,11 @@ kubectl get deliverables "${TAP_APP_NAME}" -o yaml |  yq 'del(.status)'  | yq 'd
 
 cat ${TAP_APP_NAME}-delivery.yaml
 
-echo "login to run cluster to deploy tap demo delivery workload"
-aws eks --region $aws_region update-kubeconfig --name tap-run
+#echo "login to run cluster to deploy tap demo delivery workload"
+#aws eks --region $aws_region update-kubeconfig --name tap-run
 
 kubectl apply -f ${TAP_APP_NAME}-delivery.yaml
+
 
 kubectl get deliverable -A     
 

@@ -256,44 +256,46 @@ tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION --values-file 
 tanzu package installed get tap -n "${TAP_NAMESPACE}"
 
 # Create Issuer and Certificate for tap-gui
-#cat <<EOF | tee tap-full-cluster-issuer.yaml
-#apiVersion: cert-manager.io/v1
-#kind: ClusterIssuer
-#metadata:
-#  name: letsencrypt-http01-issuer
-#spec:
-#  acme:
-#    server: https://acme-v02.api.letsencrypt.org/directory
-#    email: ipablo@vmware.com
-#    privateKeySecretRef:
-#      name: letsencrypt-http01-issuer
-#    solvers:
-#      - http01:
-#          ingress:
-#            class: contour
-#EOF
+cat <<EOF | tee tap-full-cluster-issuer.yaml
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-http01-issuer
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: stefano.figura@tietoevry.com
+    privateKeySecretRef:
+      name: letsencrypt-http01-issuer
+    solvers:
+      - http01:
+          ingress:
+            class: contour
+EOF
 
-#cat <<EOF | tee tap-full-certificate.yaml
+cat <<EOF | tee tap-full-certificate.yaml
 
-#apiVersion: cert-manager.io/v1
-#kind: Certificate
-#metadata:
-#  namespace: cert-manager
-#  name: tap-gui
-#spec:
-#  commonName: tap-gui.${tap_cnrs_domain}
-#  dnsNames:
-#  - tap-gui.${tap_cnrs_domain}
-#  issuerRef:
-#    name: letsencrypt-http01-issuer
-#    kind: ClusterIssuer
-#  secretName: tap-gui
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  namespace: tap-gui
+  name: tap-gui
+spec:
+  commonName: tap-gui.${tap_cnrs_domain}
+  dnsNames:
+  - tap-gui.${tap_cnrs_domain}
+  issuerRef:
+    name: letsencrypt-http01-issuer
+    kind: ClusterIssuer
+  secretName: tap-gui-cert
 
-#EOF
+EOF
 
-#kubectl create -f tap-full-cluster-issuer.yaml
-#kubectl create -f tap-full-certificate.yaml
-kubectl create secret tls tap-gui-cert --cert $TAP_GUI_CERT --key $TAP_GUI_KEY -n tap-gui
+kubectl create -f tap-full-cluster-issuer.yaml
+kubectl create -f tap-full-certificate.yaml
+
+# Uncomment when using self signed cert or purchased cert
+#kubectl create secret tls tap-gui-cert --cert $TAP_GUI_CERT --key $TAP_GUI_KEY -n tap-gui
 
 # ensure all build cluster packages are installed succesfully
 tanzu package installed list -A

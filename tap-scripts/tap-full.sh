@@ -5,7 +5,7 @@ source var.conf
 
 chmod +x tanzu-essential-setup.sh
 chmod +x tap-repo.sh
-chmod +x tap-view-profile.sh
+chmod +x tap-full-profile.sh
 chmod +x tap-dev-namespace.sh
 
 chmod +x var-input-validatation.sh
@@ -18,8 +18,8 @@ kubectl config set-credentials ${TAP_CLUSTER_USER} --client-certificate=${TAP_CL
 kubectl config set-context ${TAP_CLUSTER_USER}@${TAP_CLUSTER_NAME} --cluster=${TAP_CLUSTER_NAME} --user=${TAP_CLUSTER_USER}
 kubectl config use-context ${TAP_CLUSTER_USER}@${TAP_CLUSTER_NAME}
 
-#echo "Step 1 => installing tanzu cli and tanzu essential in VIEW cluster !!!"
-#./tanzu-essential-setup.sh
+echo "Step 1 => installing tanzu cli and tanzu essential in VIEW cluster !!!"
+./tanzu-essential-setup.sh
 echo "Step 2 => installing TAP Repo in FULL cluster !!! "
 ./tap-repo.sh
 echo "Step 3 => installing TAP FULL  Profile !!! "

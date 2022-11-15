@@ -3,6 +3,11 @@
 # SPDX-License-Identifier: BSD-2-Clause
 source var.conf
 
+# Remove incompatible kapp-controller found in CSE 3.1.3
+kubectl delete  deployment/kapp-controller  -n kapp-controller
+# Fix metada-store-db DB creation
+kubectl apply -f csi-vcd-controllerplugin-statefulset.yam
+
 chmod +x tap-full.sh
 chmod +x tanzu-cli-setup.sh
 chmod +x tap-demo-app-deploy.sh
