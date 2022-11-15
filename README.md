@@ -1,13 +1,17 @@
+## Disclaimer
+
+Version customised for TE environment using CSE 3.1.3. Use at your own risk.
+
 ## Purpose
 
-This project is designed to build a Tanzu Application Platform 1.2 single-cluster instance on VCD+CSE 4.x TKG Cluster that corresponds to the [Full TAP profile in the Official VMware Docs](https://docs.vmware.com/en/VMware-Tanzu-Application-Platform/1.2/tap/GUID-install-intro.html). 
+This project is designed to build a Tanzu Application Platform 1.2 single-cluster instance on VCD+CSE 3.1.3 TKG Cluster that corresponds to the [Full TAP profile in the Official VMware Docs](https://docs.vmware.com/en/VMware-Tanzu-Application-Platform/1.2/tap/GUID-install-intro.html). 
 
 This is a 1-step automation with minimum inputs into config files. This scripts assume that Tanzu Cluster essentials are already present in the TKG cluster.
 
 * **Step 1** To install TAP full profile into a Tanzu K8S cluster.
 
 Specifically, this automation will build:
-- Install Tanzu Application Platform full profile on the VCD+CSE 4.x TKG cluster. 
+- Install Tanzu Application Platform full profile on the VCD+CSE 3.1.3 TKG cluster. 
 - Install Tanzu Application Platform sample demo app. 
 
 ## [Prerequisites](https://docs.vmware.com/en/VMware-Tanzu-Application-Platform/1.2/tap/GUID-prerequisites.html)
