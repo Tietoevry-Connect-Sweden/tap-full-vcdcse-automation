@@ -21,4 +21,3 @@ then
 fi 
 
 #TODO: Check New Cluster,Credential and Context creation related VARS
-

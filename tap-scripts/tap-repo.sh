@@ -14,7 +14,6 @@ source var.conf
 export INSTALL_REGISTRY_USERNAME=$tanzu_net_reg_user
 export INSTALL_REGISTRY_PASSWORD=$tanzu_net_reg_password
 
-
 kubectl create ns "${TAP_NAMESPACE}"
 
 # tanzu registry secret creation

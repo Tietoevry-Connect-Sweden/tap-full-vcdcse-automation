@@ -43,11 +43,7 @@ cat ${TAP_APP_NAME}-delivery.yaml
 
 kubectl apply -f ${TAP_APP_NAME}-delivery.yaml
 
-
 kubectl get deliverable -A     
 
 echo "get app url and copy into browser to test the app"
 kubectl get ksvc
-
-
-
