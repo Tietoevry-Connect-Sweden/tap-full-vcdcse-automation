@@ -20,13 +20,13 @@ filename=""
 if [ "$os" == "$var" ]; then
     echo "OS = mac"
 
-# install tanzu cli v(0.11.6) and plug-ins (mac)
-#url linux-  tanzu cli -  https://network.pivotal.io/api/v2/products/tanzu-application-platform/releases/1127796/product_files/1246421/download
-#url mac- tanzu cli - https://network.pivotal.io/api/v2/products/tanzu-application-platform/releases/1127796/product_files/1246418/download
+# install tanzu cli v(0.25) and plug-ins (mac)
+#url linux-  tanzu cli -  https://network.pivotal.io/api/v2/products/tanzu-application-platform/releases/1182301/product_files/1310085/download
+#url mac- tanzu cli - https://network.pivotal.io/api/v2/products/tanzu-application-platform/releases/1182301/product_files/1310083/download
 
 #file name - mac= tanzu-framework-darwin-amd64.tar , linux= tanzu-framework-linux-amd64.tar
 
-tanzucliurl=https://network.pivotal.io/api/v2/products/tanzu-application-platform/releases/1127796/product_files/1246418/download
+tanzucliurl=https://network.pivotal.io/api/v2/products/tanzu-application-platform/releases/1182301/product_files/1310083/download
 tanzuclifilename=tanzu-framework-darwin-amd64.tar
 
 mkdir $HOME/tanzu
@@ -45,22 +45,21 @@ yq --version
 else
     echo "OS = Linux/ubuntu"
 
-# install tanzu cli v(0.11.6) and plug-ins (linux)
-#url linux-  tanzu cli -  https://network.pivotal.io/api/v2/products/tanzu-application-platform/releases/1127796/product_files/1246421/download
-#url mac- tanzu cli - https://network.pivotal.io/api/v2/products/tanzu-application-platform/releases/1127796/product_files/1246418/download
+# install tanzu cli v(0.25) and plug-ins (linux)
+#url linux-  tanzu cli -  https://network.pivotal.io/api/v2/products/tanzu-application-platform/releases/1182301/product_files/1310085/download
+#url mac- tanzu cli - https://network.pivotal.io/api/v2/products/tanzu-application-platform/releases/1182301/product_files/1310083/download
 
 #file name - mac= tanzu-framework-darwin-amd64.tar , linux= tanzu-framework-linux-amd64.tar
 
-tanzucliurl=https://network.pivotal.io/api/v2/products/tanzu-application-platform/releases/1127796/product_files/1246421/download
+tanzucliurl=https://network.pivotal.io/api/v2/products/tanzu-application-platform/releases/1182301/product_files/1310085/download
 tanzuclifilename=tanzu-framework-linux-amd64.tar
-#check if tanzu cli already exist , then don't install it again
 
 mkdir $HOME/tanzu
 cd $HOME/tanzu
 wget $tanzucliurl --header="Authorization: Bearer ${access_token}" -O $HOME/tanzu/$tanzuclifilename
 tar -xvf $HOME/tanzu/$tanzuclifilename -C $HOME/tanzu
 
-export VERSION=v0.11.6
+export VERSION=v0.25.0
 sudo install $HOME/tanzu/cli/core/$VERSION/tanzu-core-linux_amd64 /usr/local/bin/tanzu
 
 # install yq package 

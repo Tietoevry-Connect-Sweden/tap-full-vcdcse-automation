@@ -12,7 +12,7 @@ then
   export TAP_REGISTRY_REPOSITORY=$TAP_REGISTRY_USER
 else
   export TAP_REGISTRY_SERVER=$registry_url
-  export TAP_REGISTRY_REPOSITORY=${TAP_REGISTRY_USER}"/supply-chain"
+  export TAP_REGISTRY_REPOSITORY="supply-chain"
 fi
 export TAP_REGISTRY_PASSWORD=$registry_password
 #export TAP_VERSION=1.1.0
@@ -50,10 +50,13 @@ metadata:
   name: k8s-reader
 rules:
 - apiGroups: ['']
-  resources: ['pods', 'services', 'configmaps']
+  resources: ['pods', 'pods/log', 'services', 'configmaps', 'limitranges']
+  verbs: ['get', 'watch', 'list']
+- apiGroups: ['metrics.k8s.io']
+  resources: ['pods']
   verbs: ['get', 'watch', 'list']
 - apiGroups: ['apps']
-  resources: ['deployments', 'replicasets']
+  resources: ['deployments', 'replicasets', 'statefulsets', 'daemonsets']
   verbs: ['get', 'watch', 'list']
 - apiGroups: ['autoscaling']
   resources: ['horizontalpodautoscalers']
@@ -95,6 +98,7 @@ rules:
 - apiGroups: ['source.apps.tanzu.vmware.com']
   resources:
   - imagerepositories
+  - mavenartifacts
   verbs: ['get', 'watch', 'list']
 - apiGroups: ['conventions.apps.tanzu.vmware.com']
   resources:
@@ -120,7 +124,9 @@ rules:
   resources:
   - apps
   verbs: ['get', 'watch', 'list']
-
+- apiGroups: [ 'batch' ]
+  resources: [ 'jobs', 'cronjobs' ]
+  verbs: [ 'get', 'watch', 'list' ]
 EOF
 
 kubectl create -f tap-gui-viewer-service-account-rbac.yaml
@@ -138,7 +144,8 @@ echo CLUSTER_TOKEN: $CLUSTER_TOKEN
 cat <<EOF | tee tap-values-full.yaml
 profile: full
 ceip_policy_disclosed: true
-
+excluded_packages:
+  - policy.apps.tanzu.vmware.com
 shared:
   ingress_domain: "${tap_cnrs_domain}"
   
@@ -146,17 +153,14 @@ contour:
   envoy:
     service:
       type: LoadBalancer
-
 accelerator:
   server.service_type: ClusterIP
   ingress:
     include: "true"
   domain: "${tap_cnrs_domain}"
-
 learningcenter:
   ingressDomain: "learning.${tap_cnrs_domain}"
   ingressClass: contour
-
 tap_gui:
   service_type: ClusterIP
   ingressEnabled: "true"
@@ -195,25 +199,20 @@ tap_gui:
               skipTLSVerify: true
               skipMetricsLookup: true
               serviceAccountToken: "${CLUSTER_TOKEN}"
-
 metadata_store:
   app_service_type: LoadBalancer
-
 appliveview:
   ingressEnabled: true
   ingressDomain: "${tap_cnrs_domain}" 
-
 buildservice:
-  kp_default_repository: "${TAP_REGISTRY_SERVER}/${TAP_REGISTRY_USER}/build-service"
+  kp_default_repository: "${TAP_REGISTRY_SERVER}/build-service"
   kp_default_repository_username: "${TAP_REGISTRY_USER}"
   kp_default_repository_password: "${TAP_REGISTRY_PASSWORD}"
   tanzunet_username: "${INSTALL_REGISTRY_USERNAME}"
   tanzunet_password: "${INSTALL_REGISTRY_PASSWORD}"
   descriptor_name: "full"
   enable_automatic_dependency_updates: true
-
 supply_chain: basic
-
 ootb_supply_chain_basic:    
   registry:
     server: "${TAP_REGISTRY_SERVER_ORIGINAL}"
@@ -222,7 +221,6 @@ ootb_supply_chain_basic:
     ssh_secret: ""
   cluster_builder: default
   service_account: default
-
 grype:
   namespace: "default" 
   targetImagePullSecret: "tap-registry"
@@ -234,68 +232,62 @@ grype:
     authSecret:
         name: store-auth-token
         importFromNamespace: metadata-store-secrets
-
 scanning:
   metadataStore:
     url: "" # Disable embedded integration since it's deprecated
-
 image_policy_webhook:
   allow_unmatched_images: true
-
 cnrs:
   domain_name: "${tap_cnrs_domain}"
-
 appliveview_connector:
   backend:
     sslDisabled: "true"
-    host: appliveview.$alv_domain
-
+    ingressEnabled: "true"
+    host: appliveview.${tap_cnrs_domain}
 EOF
 
 tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION --values-file tap-values-full.yaml -n "${TAP_NAMESPACE}"
 tanzu package installed get tap -n "${TAP_NAMESPACE}"
 
 # Create Issuer and Certificate for tap-gui
-cat <<EOF | tee tap-full-cluster-issuer.yaml
-apiVersion: cert-manager.io/v1
-kind: ClusterIssuer
-metadata:
-  name: letsencrypt-http01-issuer
-spec:
-  acme:
-    server: https://acme-v02.api.letsencrypt.org/directory
-    email: stefano.figura@tietoevry.com
-    privateKeySecretRef:
-      name: letsencrypt-http01-issuer
-    solvers:
-      - http01:
-          ingress:
-            class: contour
-EOF
+#cat <<EOF | tee tap-full-cluster-issuer.yaml
+#apiVersion: cert-manager.io/v1
+#kind: ClusterIssuer
+#metadata:
+#  name: letsencrypt-http01-issuer
+#spec:
+#  acme:
+#    server: https://acme-v02.api.letsencrypt.org/directory
+#    email: ipablo@vmware.com
+#    privateKeySecretRef:
+#      name: letsencrypt-http01-issuer
+#    solvers:
+#      - http01:
+#          ingress:
+#            class: contour
+#EOF
 
-cat <<EOF | tee tap-full-certificate.yaml
+#cat <<EOF | tee tap-full-certificate.yaml
 
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  namespace: tap-gui
-  name: tap-gui
-spec:
-  commonName: tap-gui.${tap_cnrs_domain}
-  dnsNames:
-  - tap-gui.${tap_cnrs_domain}
-  issuerRef:
-    name: letsencrypt-http01-issuer
-    kind: ClusterIssuer
-  secretName: tap-gui-cert
+#apiVersion: cert-manager.io/v1
+#kind: Certificate
+#metadata:
+#  namespace: cert-manager
+#  name: tap-gui
+#spec:
+#  commonName: tap-gui.${tap_cnrs_domain}
+#  dnsNames:
+#  - tap-gui.${tap_cnrs_domain}
+#  issuerRef:
+#    name: letsencrypt-http01-issuer
+#    kind: ClusterIssuer
+#  secretName: tap-gui
 
-EOF
+#EOF
 
-kubectl create -f tap-full-cluster-issuer.yaml
-kubectl create -f tap-full-certificate.yaml
-
-# Uncomment when using self signed cert or purchased cert
-#kubectl create secret tls tap-gui-cert --cert $TAP_GUI_CERT --key $TAP_GUI_KEY -n tap-gui
+#kubectl create -f tap-full-cluster-issuer.yaml
+#kubectl create -f tap-full-certificate.yaml
+kubectl create secret tls tap-gui-cert --cert $TAP_GUI_CERT --key $TAP_GUI_KEY -n tap-gui
 
 # ensure all build cluster packages are installed succesfully
 tanzu package installed list -A
