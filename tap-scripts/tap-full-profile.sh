@@ -12,7 +12,7 @@ then
   export TAP_REGISTRY_REPOSITORY=$TAP_REGISTRY_USER
 else
   export TAP_REGISTRY_SERVER=$registry_url
-  export TAP_REGISTRY_REPOSITORY=${TAP_REGISTRY_USER}/"supply-chain"
+  export TAP_REGISTRY_REPOSITORY=${TAP_REGISTRY_USER}"/supply-chain"
 fi
 export TAP_REGISTRY_PASSWORD=$registry_password
 #export TAP_VERSION=1.1.0
