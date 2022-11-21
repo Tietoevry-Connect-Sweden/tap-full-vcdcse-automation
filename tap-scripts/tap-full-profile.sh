@@ -249,7 +249,7 @@ EOF
 tanzu package install tap -p tap.tanzu.vmware.com -v $TAP_VERSION --values-file tap-values-full.yaml -n "${TAP_NAMESPACE}"
 tanzu package installed get tap -n "${TAP_NAMESPACE}"
 
- Create Issuer and Certificate for tap-gui
+# Create Issuer and Certificate for tap-gui
 cat <<EOF | tee tap-full-cluster-issuer.yaml
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
